@@ -39,7 +39,7 @@
 #include <earcut.hpp>
 
 // ROS imports
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 // Other imports
 #include <cmath>
@@ -52,7 +52,7 @@
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-// Define various geometries
+// Define various geometries 
 using point = bg::model::point<double, 2, bg::cs::cartesian>;
 using polygon = bg::model::polygon<point, false, true>;
 using line = bg::model::linestring<point>;

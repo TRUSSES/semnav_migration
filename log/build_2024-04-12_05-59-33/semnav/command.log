@@ -1,0 +1,2 @@
+Invoking command in '/home/AmyEric/ros2_ws/src/semnav_migration/build/semnav': /usr/bin/cmake /home/AmyEric/ros2_ws/src/semnav_migration -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/AmyEric/ros2_ws/src/semnav_migration/install/semnav
+Invoked command in '/home/AmyEric/ros2_ws/src/semnav_migration/build/semnav' returned '1': /usr/bin/cmake /home/AmyEric/ros2_ws/src/semnav_migration -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/AmyEric/ros2_ws/src/semnav_migration/install/semnav

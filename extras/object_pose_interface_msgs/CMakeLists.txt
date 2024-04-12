@@ -8,13 +8,11 @@ endif()
 
 # Find dependencies
 find_package(ament_cmake REQUIRED)
-# message generation removed in ROS2
 find_package(rosidl_default_generators REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 # Add message files
-
 set(msg_files
    "msg/Classification.msg"
    "msg/KeypointDetection3D.msg"
@@ -27,13 +25,15 @@ set(msg_files
 # Generate messages
 rosidl_generate_interfaces(${PROJECT_NAME}
     ${msg_files}
-    DEPENDENCIES builtin_interfaces
+    DEPENDENCIES builtin_interfaces std_msgs geometry_msgs 
 )
 
 ament_export_dependencies(
-  message_runtime
+  rosidl_default_runtime
   std_msgs
   geometry_msgs
 )
+
+
 
 ament_package()
