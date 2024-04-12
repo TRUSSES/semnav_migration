@@ -1,33 +1,39 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(object_pose_interface_msgs)
 
-find_package(catkin REQUIRED 
-  COMPONENTS
-  roscpp
-  message_generation
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+# Find dependencies
+find_package(ament_cmake REQUIRED)
+# message generation removed in ROS2
+find_package(rosidl_default_generators REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
+# Add message files
+
+set(msg_files
+   "msg/Classification.msg"
+   "msg/KeypointDetection3D.msg"
+   "msg/KeypointDetections3D.msg"
+   "msg/ObjectClass.msg"
+   "msg/SemanticMapObject.msg"
+   "msg/SemanticMapObjectArray.msg"
+)
+
+# Generate messages
+rosidl_generate_interfaces(${PROJECT_NAME}
+    ${msg_files}
+    DEPENDENCIES builtin_interfaces
+)
+
+ament_export_dependencies(
+  message_runtime
   std_msgs
   geometry_msgs
 )
 
-add_message_files(
-  FILES
-  Classification.msg
-  KeypointDetection3D.msg
-  KeypointDetections3D.msg
-  ObjectClass.msg
-  SemanticMapObject.msg
-  SemanticMapObjectArray.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
-)
-
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES object_pose_interface_msgs
-  CATKIN_DEPENDS message_runtime std_msgs geometry_msgs
-#  DEPENDS system_lib
-)
+ament_package()

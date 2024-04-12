@@ -22,163 +22,111 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(semnav)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-g -O3 -ffast-math -Wall)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
+# Find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(message_filters REQUIRED)
+
+# message_generation dependency broken
+find_package(object_pose_interface_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(CGAL REQUIRED COMPONENTS Core)
+
+# Define targets
+add_library(reactive_planner
+  src/libraries/polygeom_lib.cpp
+  src/libraries/reactive_planner_lib.cpp
+)
+
+ament_target_dependencies(reactive_planner
+  rclcpp
+  std_msgs
   geometry_msgs
   nav_msgs
   sensor_msgs
-  roscpp
-  rosconsole
-  rostime
-  roscpp_serialization
-  std_msgs
   message_filters
-  message_generation
   object_pose_interface_msgs
-  tf
-)
-
-# Find other libraries
-set(Boost_USE_STATIC_LIBS OFF) 
-set(Boost_USE_MULTITHREADED ON)  
-set(Boost_USE_STATIC_RUNTIME OFF) 
-find_package(Boost 1.45.0)
-find_package(CGAL REQUIRED COMPONENTS Core)
-
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-)
-
-###########
-## Build ##
-###########
-set(MAIN_DIR ${CMAKE_SOURCE_DIR})
-
-## Specify additional locations of header files
-include_directories(
-  ${MAIN_DIR}/include
-  ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-)
-
-## Declare C++ libraries
-add_library(reactive_planner
-  ${MAIN_DIR}/src/libraries/polygeom_lib.cpp
-  ${MAIN_DIR}/src/libraries/reactive_planner_lib.cpp
-)
-
-target_link_libraries(reactive_planner
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  CGAL::CGAL
-  CGAL::CGAL_Core
+  tf2_ros
 )
 
 # Add executables
 add_executable(navigation 
-  ${MAIN_DIR}/src/navigation.cpp
+  src/navigation.cpp
 )
 
 add_executable(navigation_semantic 
-  ${MAIN_DIR}/src/navigation_semantic.cpp
+  src/navigation_semantic.cpp
 )
 
 add_executable(navigation_humans 
-  ${MAIN_DIR}/src/navigation_humans.cpp
+  src/navigation_humans.cpp
 )
 
 add_executable(human_following 
-  ${MAIN_DIR}/src/human_following.cpp
+  src/human_following.cpp
 )
 
 add_executable(human_following_signal 
-  ${MAIN_DIR}/src/human_following_signal.cpp
+  src/human_following_signal.cpp
 )
 
 add_executable(human_following_fallen
-  ${MAIN_DIR}/src/human_following_fallen.cpp
+  src/human_following_fallen.cpp
 )
 
 add_executable(map_debug 
-  ${MAIN_DIR}/src/map_debug.cpp
+  src/map_debug.cpp
 )
 
 add_executable(fake_lidar_publisher 
-  ${MAIN_DIR}/src/fake_lidar_publisher.cpp
+  src/fake_lidar_publisher.cpp
 )
 
 add_executable(fake_odometry_publisher 
-  ${MAIN_DIR}/src/fake_odometry_publisher.cpp
+  src/fake_odometry_publisher.cpp
 )
 
-# Link
-target_link_libraries(navigation
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
+# Link libraries
+target_link_libraries(navigation reactive_planner)
+target_link_libraries(navigation_semantic reactive_planner)
+target_link_libraries(navigation_humans reactive_planner)
+target_link_libraries(human_following reactive_planner)
+target_link_libraries(human_following_signal reactive_planner)
+target_link_libraries(human_following_fallen reactive_planner)
+target_link_libraries(map_debug reactive_planner)
+target_link_libraries(fake_lidar_publisher reactive_planner)
+target_link_libraries(fake_odometry_publisher reactive_planner)
+
+# Install
+install(TARGETS
   reactive_planner
+  navigation
+  navigation_semantic
+  navigation_humans
+  human_following
+  human_following_signal
+  human_following_fallen
+  map_debug
+  fake_lidar_publisher
+  fake_odometry_publisher
+  DESTINATION lib/${PROJECT_NAME}
 )
 
-target_link_libraries(navigation_semantic
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  reactive_planner
+# Install header files
+install(DIRECTORY include/
+  DESTINATION include
 )
 
-target_link_libraries(navigation_humans
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  reactive_planner
-)
-
-target_link_libraries(human_following
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  reactive_planner
-)
-
-target_link_libraries(human_following_signal
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  reactive_planner
-)
-
-target_link_libraries(human_following_fallen
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  reactive_planner
-)
-
-target_link_libraries(map_debug
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  reactive_planner
-)
-
-target_link_libraries(fake_lidar_publisher
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  reactive_planner
-)
-
-target_link_libraries(fake_odometry_publisher
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  reactive_planner
-)
-
-## Mark executables and/or libraries for installation
-install(TARGETS reactive_planner
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+ament_package()
