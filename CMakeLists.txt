@@ -13,6 +13,10 @@ find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
+
+find_package(tf2_ros REQUIRED)
+
+
 find_package(std_msgs REQUIRED)
 find_package(message_filters REQUIRED)
 # dependency broken
@@ -42,6 +46,7 @@ include_directories(
   ${nav_msgs_INCLUDE_DIRS}
   ${geometry_msgs_INCLUDE_DIRS}
   ${tf2_INCLUDE_DIRS}
+  ${tf2_ros_INCLUDE_DIRS}
   ${std_msgs_INCLUDE_DIRS}
   ${message_filters_INCLUDE_DIRS}
   ${object_pose_interface_msgs_INCLUDE_DIRS}
@@ -61,6 +66,7 @@ target_include_directories(reactive_planner PRIVATE
   ${nav_msgs_INCLUDE_DIRS}
   ${geometry_msgs_INCLUDE_DIRS}
   ${tf2_INCLUDE_DIRS}
+  ${tf2_ros_INCLUDE_DIRS}
   ${std_msgs_INCLUDE_DIRS}
   ${message_filters_INCLUDE_DIRS}
   ${object_pose_interface_msgs_INCLUDE_DIRS}
@@ -73,6 +79,7 @@ target_link_libraries(reactive_planner
   ${nav_msgs_LIBRARIES}
   ${geometry_msgs_LIBRARIES}
   ${tf2_LIBRARIES}
+  ${tf2_ros_LIBRARIES}
   ${std_msgs_LIBRARIES}
   ${message_filters_LIBRARIES}
   ${object_pose_interface_msgs_LIBRARIES}

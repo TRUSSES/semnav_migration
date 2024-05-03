@@ -39,13 +39,14 @@
 
 
 
+
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
-#include <sensor_msgs/LaserScan.h>
-#include <nav_msgs/Odometry.h>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <nav_msgs/msg/Odometry.h>
 #include <std_msgs/UInt32.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PolygonStamped.h>
