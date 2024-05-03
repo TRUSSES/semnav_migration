@@ -41,7 +41,7 @@ bg::strategy::buffer::side_straight side_strategy_input;
 class HumanFollowingSignalNode {
 	public:
 		// Constructor
-		HumanFollowingSignalNode(ros::NodeHandle* nodehandle) : nh_(*nodehandle) {
+		HumanFollowingSignalNode(rclcpp::Node* nodehandle) : nh_(*nodehandle) {
 			// Find parameters
 			nh_.getParam("pub_twist_topic", pub_twist_topic_);
 			nh_.getParam("pub_behaviorID_topic", pub_behaviorID_topic_);
@@ -103,9 +103,9 @@ class HumanFollowingSignalNode {
 			sync.reset(new Sync(SyncPolicy(100000), sub_laser, sub_robot));
 			sync->registerCallback(boost::bind(&HumanFollowingSignalNode::control_callback, this, _1, _2));
 
-			ros::Subscriber sub_semantic = nh_.subscribe(sub_semantic_topic_, 1, &HumanFollowingSignalNode::diffeo_tree_update, this);
+			rclcpp::Subscription sub_semantic = nh_.subscribe(sub_semantic_topic_, 1, &HumanFollowingSignalNode::diffeo_tree_update, this);
 
-			ros::Subscriber sub_human = nh_.subscribe(sub_human_topic_, 1, &HumanFollowingSignalNode::human_update, this);
+			rclcpp::Subscription sub_human = nh_.subscribe(sub_human_topic_, 1, &HumanFollowingSignalNode::human_update, this);
 
 			// Publish zero commands
 			publish_behavior_id(BEHAVIOR_STAND);
@@ -114,7 +114,7 @@ class HumanFollowingSignalNode {
 			publish_twist(0.0, 0.0);
 
 			// Spin
-			ros::MultiThreadedSpinner spinner(4);
+			rclcpp::executors::MultiThreadedExecutor spinner(4);
 			spinner.spin();
 		}
 
@@ -249,7 +249,7 @@ class HumanFollowingSignalNode {
 					try {
 						listener_.waitForTransform(world_frame_id_, ros::Time(0), camera_optical_frame_id_, human_data->header.stamp, world_frame_id_, ros::Duration(1.0));
 						listener_.transformPoint(world_frame_id_, ros::Time(0), pointCamera, world_frame_id_, pointMap);
-					} catch (tf::TransformException &ex) {
+					} catch (tf22::TransformException &ex) {
 						ROS_ERROR("%s",ex.what());
 						return;
 					}
@@ -405,17 +405,17 @@ class HumanFollowingSignalNode {
 			try {
 				listener_.waitForTransform(world_frame_id_, odom_frame_id_, ros::Time(0), ros::Duration(1.0));
 				listener_.transformPose(world_frame_id_, odomPose, mapPose);
-			} catch (tf::TransformException &ex) {
+			} catch (tf2::TransformException &ex) {
 				ROS_ERROR("%s",ex.what());
 				return;
 			}
 
 			// Get robot position and orientation
-			tf::Quaternion rotation = tf::Quaternion(mapPose.pose.orientation.x, 
+			tf2::Quaternion rotation = tf2::Quaternion(mapPose.pose.orientation.x, 
 													 mapPose.pose.orientation.y,
 													 mapPose.pose.orientation.z,
 													 mapPose.pose.orientation.w);
-			tf::Matrix3x3 m(rotation);
+			tf2::Matrix3x3 m(rotation);
 			double roll, pitch, yaw;
 			m.getRPY(roll, pitch, yaw);
 			double x_robot_position = mapPose.pose.position.x;
@@ -441,7 +441,7 @@ class HumanFollowingSignalNode {
 				listener_.transformPoint(world_frame_id_, ros::Time(0), localGoalCamera, world_frame_id_, localGoalMap);
 				Goal_x_ = localGoalMap.point.x - 0.1*cos(atan2(localGoalMap.point.y-RobotPositionY,localGoalMap.point.x-RobotPositionX));
 				Goal_y_ = localGoalMap.point.y - 0.1*sin(atan2(localGoalMap.point.y-RobotPositionY,localGoalMap.point.x-RobotPositionX));
-			} catch (tf::TransformException &ex) {
+			} catch (tf2::TransformException &ex) {
 				ROS_ERROR("%s",ex.what());
 			}
 			if (!localStopSignal && human_seen) {
@@ -639,7 +639,7 @@ class HumanFollowingSignalNode {
 	
 	private:
 		// Nodehandle
-		ros::NodeHandle nh_;
+		rclcpp::Node nh_;
 
 		// Parameters
 		std::string pub_twist_topic_;
@@ -658,11 +658,11 @@ class HumanFollowingSignalNode {
 		double target_object_length_;
 		double target_object_width_;
 
-		ros::Publisher pub_behaviorID_;
-		ros::Publisher pub_behaviorMode_;
-		ros::Publisher pub_twist_;
+		rclcpp::Publisher pub_behaviorID_;
+		rclcpp::Publisher pub_behaviorMode_;
+		rclcpp::Publisher pub_twist_;
 
-		ros::Publisher pub_semantic_map_;
+		rclcpp::Publisher pub_semantic_map_;
 
 		double RobotRadius_;
 		double ObstacleDilation_;
@@ -712,7 +712,7 @@ class HumanFollowingSignalNode {
 		bool StopSignal_ = false;
 		bool HumanSeen_ = false;
 
-		tf::TransformListener listener_;
+		tf2::TransformListener listener_;
 
 		std::mutex mutex_;
 };
@@ -722,7 +722,7 @@ int main(int argc, char** argv) {
 	ros::init(argc, argv, "human_following_signal");
 
 	// ROS nodehandle
-	ros::NodeHandle nh("~");
+	rclcpp::Node nh("~");
 
 	// Start navigation node
 	HumanFollowingSignalNode humanFollowingSignalNode(&nh);

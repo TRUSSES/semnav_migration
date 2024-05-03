@@ -46,15 +46,8 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <sensor_msgs/msg/laser_scan.hpp>
-#include <nav_msgs/msg/Odometry.h>
-#include <std_msgs/UInt32.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/PolygonStamped.h>
-#include <geometry_msgs/PointStamped.h>
-#include <geometry_msgs/Point32.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <object_pose_interface_msgs/SemanticMapObjectArray.h>
-#include <object_pose_interface_msgs/KeypointDetections3D.h>
+#include <nav_msgs/msg/odometry.hpp>
+
 
 // Local imports
 #include <polygeom_lib.h>
@@ -226,7 +219,7 @@ class DiffeoParamsClass {
 void completeLIDAR2D(LIDARClass* LIDAR);
 
 
-void constructLIDAR2D(const sensor_msgs::LaserScan::ConstPtr& DataLIDAR, double CutoffRange, double AllowableRange, double Pitch, LIDARClass* LIDAR);
+void constructLIDAR2D(const sensor_msgs::msg::LaserScan::SharedPtr DataLIDAR, double CutoffRange, double AllowableRange, double Pitch, LIDARClass* LIDAR);
 
 
 std::vector<point> obstaclePointsLIDAR2D(point RobotPosition, double RobotOrientation, LIDARClass* LIDAR);

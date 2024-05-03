@@ -41,7 +41,7 @@ bg::strategy::buffer::side_straight side_strategy_input;
 class NavigationNode {
 	public:
 		// Constructor
-		NavigationNode(ros::NodeHandle* nodehandle) : nh_(*nodehandle) {
+		NavigationNode(rclcpp::Node* nodehandle) : nh_(*nodehandle) {
 			// Find parameters
 			nh_.getParam("pub_twist_topic", pub_twist_topic_);
 			nh_.getParam("pub_behaviorID_topic", pub_behaviorID_topic_);
@@ -101,18 +101,18 @@ class NavigationNode {
 			sync.reset(new Sync(SyncPolicy(100000), sub_laser, sub_robot));
 			sync->registerCallback(boost::bind(&NavigationNode::control_callback, this, _1, _2));
 
-			ros::Subscriber sub_semantic = nh_.subscribe(sub_semantic_topic_, 1, &NavigationNode::diffeo_tree_update, this);
+			rclcpp::Subscription sub_semantic = nh_.subscribe(sub_semantic_topic_, 1, &NavigationNode::diffeo_tree_update, this);
 
 			// Publish zero commands
 			publish_behavior_id(BEHAVIOR_STAND);
-			ros::Duration(5.0).sleep();
+			rclcpp::Duration(5.0).sleep();
 			publish_behavior_id(BEHAVIOR_WALK);
 			publish_twist(0.0, 0.0);
 
 			// Spin
-			// ros::MultiThreadedSpinner spinner(2);
+			// rclcpp::executors::MultiThreadedExecutor spinner(2);
 			// spinner.spin();
-			ros::spin();
+			rclcpp::spin(node_ptr);
 		}
 
 		void publish_twist(double LinearCmd, double AngularCmd) {
@@ -202,13 +202,13 @@ class NavigationNode {
 
 			// Check if update is needed
 			// std::cout << DiffeoTreeUpdateRate_ << std::endl;
-			// std::cout << ros::Time::now().toSec() - DiffeoTreeUpdateTime_ << std::endl;
-			if (ros::Time::now().toSec() - DiffeoTreeUpdateTime_ < (1.0/DiffeoTreeUpdateRate_)) {
+			// std::cout << rclcpp::Time::now().toSec() - DiffeoTreeUpdateTime_ << std::endl;
+			if (rclcpp::Time::now().toSec() - DiffeoTreeUpdateTime_ < (1.0/DiffeoTreeUpdateRate_)) {
 				return;
 			} else {
 				// ROS_INFO_STREAM("Entering diffeo tree callback");
 				// Count time
-				double start_time = ros::Time::now().toSec();
+				double start_time = rclcpp::Time::now().toSec();
 
 				// Initialize polygon lists
 				std::vector<polygon> polygon_list;
@@ -276,10 +276,10 @@ class NavigationNode {
 				if (DebugFlag_) {
 					diffeoTrees_cout(DiffeoTreeArray_);
 				}
-				ROS_WARN_STREAM("[Navigation] Updated trees in " << ros::Time::now().toSec()-start_time << " seconds.");
+				ROS_WARN_STREAM("[Navigation] Updated trees in " << rclcpp::Time::now().toSec()-start_time << " seconds.");
 
 				// Update time
-				DiffeoTreeUpdateTime_ = ros::Time::now().toSec();
+				DiffeoTreeUpdateTime_ = rclcpp::Time::now().toSec();
 			}
 			return;
 		}
@@ -306,27 +306,27 @@ class NavigationNode {
 			// ROS_INFO_STREAM("[Navigation] Found diffeomorphism trees for control");
 
 			// Compute before time
-			double before_time = ros::Time::now().toSec();
+			double before_time = rclcpp::Time::now().toSec();
 
 			// Assuming the incoming odometry message is in the odom frame, transform to map frame
 			geometry_msgs::PoseStamped odomPose, mapPose;
-			odomPose.header.stamp = ros::Time(0);
+			odomPose.header.stamp = rclcpp::Time(0);
 			odomPose.header.frame_id = odom_frame_id_;
 			odomPose.pose = robot_data->pose.pose;
 			try {
-				listener_.waitForTransform(world_frame_id_, odom_frame_id_, ros::Time(0), ros::Duration(1.0));
+				listener_.waitForTransform(world_frame_id_, odom_frame_id_, rclcpp::Time(0), rclcpp::Duration(1.0));
 				listener_.transformPose(world_frame_id_, odomPose, mapPose);
-			} catch (tf::TransformException &ex) {
+			} catch (tf2::TransformException &ex) {
 				ROS_ERROR("%s",ex.what());
 				return;
 			}
 
 			// Get robot position and orientation
-			tf::Quaternion rotation = tf::Quaternion(mapPose.pose.orientation.x, 
+			tf2::Quaternion rotation = tf2::Quaternion(mapPose.pose.orientation.x, 
 													 mapPose.pose.orientation.y,
 													 mapPose.pose.orientation.z,
 													 mapPose.pose.orientation.w);
-			tf::Matrix3x3 m(rotation);
+			tf2::Matrix3x3 m(rotation);
 			double roll, pitch, yaw;
 			m.getRPY(roll, pitch, yaw);
 			double x_robot_position = mapPose.pose.position.x;
@@ -518,7 +518,7 @@ class NavigationNode {
 				LinearCmd = 0.0;
 				AngularCmd = 0.0;
 				publish_behavior_id(BEHAVIOR_STAND);
-				ros::Duration(5.0).sleep();
+				rclcpp::Duration(5.0).sleep();
 				publish_behavior_id(BEHAVIOR_SIT);
 
 				ROS_WARN_STREAM("[Navigation] Successfully navigated to goal and stopped...");
@@ -545,14 +545,14 @@ class NavigationNode {
 
 			// Print time
 			ROS_WARN_STREAM("[Navigation] Linear command is " << LinearCmd << " and angular command is " << AngularCmd);
-			ROS_WARN_STREAM("[Navigation] Command update for " << int(localDiffeoTreeArray.size()) << " polygons in " << ros::Time::now().toSec()-before_time << " seconds.");
+			ROS_WARN_STREAM("[Navigation] Command update for " << int(localDiffeoTreeArray.size()) << " polygons in " << rclcpp::Time::now().toSec()-before_time << " seconds.");
 
 			return;
 		}
 	
 	private:
 		// Nodehandle
-		ros::NodeHandle nh_;
+		rclcpp::Node nh_;
 
 		// Parameters
 		std::string pub_twist_topic_;
@@ -565,11 +565,11 @@ class NavigationNode {
 		std::string odom_frame_id_;
 		std::string laser_frame_id_;
 
-		ros::Publisher pub_behaviorID_;
-		ros::Publisher pub_behaviorMode_;
-		ros::Publisher pub_twist_;
+		rclcpp::Publisher pub_behaviorID_;
+		rclcpp::Publisher pub_behaviorMode_;
+		rclcpp::Publisher pub_twist_;
 
-		ros::Publisher pub_semantic_map_;
+		rclcpp::Publisher pub_semantic_map_;
 
 		double RobotRadius_;
 		double ObstacleDilation_;
@@ -613,7 +613,7 @@ class NavigationNode {
 
 		bool DebugFlag_ = false;
 
-		tf::TransformListener listener_;
+		tf2::TransformListener listener_;
 
 		std::mutex mutex_;
 };
@@ -623,7 +623,7 @@ int main(int argc, char** argv) {
 	ros::init(argc, argv, "navigation");
 
 	// ROS nodehandle
-	ros::NodeHandle nh("~");
+	rclcpp::Node nh("~");
 
 	// Start navigation node
 	NavigationNode navigationNode(&nh);

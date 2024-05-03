@@ -1,5 +1,4 @@
 // MIT License (modified)
-
 // Copyright (c) 2020 The Trustees of the University of Pennsylvania
 // Authors:
 // Vasileios Vasilopoulos <vvasilo@seas.upenn.edu>
@@ -22,58 +21,70 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <reactive_planner_lib.h>
+#include <rclcpp/rclcpp.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 
-class FakeOdometryPublisherNode {
-	public:
-		// Constructor
-		FakeOdometryPublisherNode(ros::NodeHandle* nodehandle) : nh_(*nodehandle) {
-			// Find parameters
-			nh_.getParam("pub_odom_topic", pub_odom_topic_);
+class FakeOdometryPublisherNode : public rclcpp::Node
+{
+public:
+    // Constructor
+    FakeOdometryPublisherNode() : Node("fake_odometry_publisher_node")
+    {
+        // Declare parameters
+        this->declare_parameter("pub_odom_topic", "fake_odom");
 
-			// Initialize publishers
-			pub_odom_ = nh_.advertise<nav_msgs::Odometry>(pub_odom_topic_, 50);
+        // Get parameter values
+        pub_odom_topic_ = this->get_parameter("pub_odom_topic").as_string();
 
-			// Odometry data
-			double odom_frequency = 30;
-			ros::Rate r(odom_frequency);
+        // Initialize publishers
+        pub_odom_ = this->create_publisher<nav_msgs::msg::Odometry>(pub_odom_topic_, rclcpp::QoS(rclcpp::KeepLast(50)));
 
-			// Spin
-			while (ros::ok()) {
-				nav_msgs::Odometry odom_msg;
-				odom_msg.header.stamp = ros::Time::now();
-				odom_msg.child_frame_id = "robot";
-				odom_msg.pose.pose.position.x = -1.5;
-				odom_msg.pose.pose.position.y = 0.0;
-				odom_msg.pose.pose.orientation.w = 1.0;
-				publish_odom(odom_msg);
-				r.sleep();
-			}
-		}
+        // Odometry data
+        double odom_frequency = 30;
 
-		void publish_odom(nav_msgs::Odometry odom_data) {
-			pub_odom_.publish(odom_data);
-			return;
-		}
-	
-	private:
-		// Nodehandle
-		ros::NodeHandle nh_;
+        // Odometry publishing loop
+        rclcpp::WallRate rate(odom_frequency);
+        while (rclcpp::ok())
+        {
+            nav_msgs::msg::Odometry odom_msg;
+            odom_msg.header.stamp = this->now();
+            odom_msg.child_frame_id = "robot";
+            odom_msg.pose.pose.position.x = -1.5;
+            odom_msg.pose.pose.position.y = 0.0;
+            odom_msg.pose.pose.orientation.w = 1.0;
 
-		// Parameters
-		std::string pub_odom_topic_;
-		ros::Publisher pub_odom_;
+            publish_odom(odom_msg);
+            rate.sleep();
+        }
+    }
+
+    void publish_odom(nav_msgs::msg::Odometry odom_data)
+    {
+        pub_odom_->publish(odom_data);
+        return;
+    }
+
+private:
+    // Parameters
+    std::string pub_odom_topic_;
+
+    // Publishers
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_;
 };
 
-int main(int argc, char** argv) {
-	// ROS setups
-	ros::init(argc, argv, "fake_odometry_publisher");
+int main(int argc, char **argv)
+{
+    // ROS 2 initialization
+    rclcpp::init(argc, argv);
 
-	// ROS nodehandle
-	ros::NodeHandle nh("~");
+    // Create the node instance
+    auto node = std::make_shared<FakeOdometryPublisherNode>();
 
-	// Start fake odometry publisher node
-	FakeOdometryPublisherNode fakeOdometryPublisher(&nh);
+    // Spin the node
+    rclcpp::spin(node);
 
-	return 0;
+    // ROS 2 cleanup
+    rclcpp::shutdown();
+
+    return 0;
 }

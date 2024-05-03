@@ -80,7 +80,7 @@ void completeLIDAR2D(LIDARClass* LIDAR) {
 }
 
 
-void constructLIDAR2D(const sensor_msgs::LaserScan::ConstPtr& DataLIDAR, double CutoffRange, double AllowableRange, double Pitch, LIDARClass *LIDAR) {
+void constructLIDAR2D(const sensor_msgs::msg::LaserScan::SharedPtr DataLIDAR, double CutoffRange, double AllowableRange, double Pitch, LIDARClass* LIDAR) {
     /** 
      * Function that constructs a LIDAR object to be used by the reactive planner
      * 

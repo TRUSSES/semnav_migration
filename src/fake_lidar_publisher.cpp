@@ -1,5 +1,4 @@
 // MIT License (modified)
-
 // Copyright (c) 2020 The Trustees of the University of Pennsylvania
 // Authors:
 // Vasileios Vasilopoulos <vvasilo@seas.upenn.edu>
@@ -22,74 +21,89 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <reactive_planner_lib.h>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
 
-class FakeLidarPublisherNode {
-	public:
-		// Constructor
-		FakeLidarPublisherNode(ros::NodeHandle* nodehandle) : nh_(*nodehandle) {
-			// Find parameters
-			nh_.getParam("pub_lidar_topic", pub_lidar_topic_);
+class FakeLidarPublisherNode : public rclcpp::Node
+{
+public:
+    // Constructor
+    FakeLidarPublisherNode() : Node("fake_lidar_publisher_node")
+    {
+        // Declare parameters
+        this->declare_parameter("pub_lidar_topic", "fake_lidar_scan");
 
-			// Initialize publishers
-			pub_lidar_ = nh_.advertise<sensor_msgs::LaserScan>(pub_lidar_topic_, 50);
+        // Get parameter values
+        pub_lidar_topic_ = this->get_parameter("pub_lidar_topic").as_string();
 
-			// LIDAR data
-			unsigned int num_readings = 100;
-			double laser_frequency = 30;
-			double ranges[num_readings];
-			double intensities[num_readings];
-			ros::Rate r(laser_frequency);
+        // Initialize publishers
+        pub_lidar_ = this->create_publisher<sensor_msgs::msg::LaserScan>(pub_lidar_topic_, rclcpp::QoS(rclcpp::KeepLast(50)));
 
-			// Spin
-			while (ros::ok()) {
-				for (unsigned int i = 0; i < num_readings; ++i) {
-					ranges[i] = 20.0;
-					intensities[i] = 100.0;
-				}
-				sensor_msgs::LaserScan scan;
-				scan.header.stamp = ros::Time::now();
-				scan.header.frame_id = "laser";
-				scan.angle_min = -2.35;
-				scan.angle_max = 2.35;
-				scan.angle_increment = 4.7/(num_readings-1);
-				scan.time_increment = (1/laser_frequency) / (num_readings);
-				scan.range_min = 20.0;
-				scan.range_max = 20.0;
-				scan.ranges.resize(num_readings);
-				scan.intensities.resize(num_readings);
-				for (unsigned int i = 0; i < num_readings; ++i) {
-					scan.ranges[i] = ranges[i];
-					scan.intensities[i] = intensities[i];
-				}
-				publish_lidar(scan);
-				r.sleep();
-			}
-		}
+        // LIDAR data
+        unsigned int num_readings = 100;
+        double laser_frequency = 30;
+        double ranges[num_readings];
+        double intensities[num_readings];
 
-		void publish_lidar(sensor_msgs::LaserScan lidar) {
-			pub_lidar_.publish(lidar);
-			return;
-		}
-	
-	private:
-		// Nodehandle
-		ros::NodeHandle nh_;
+        // LIDAR publishing loop
+        rclcpp::WallRate rate(laser_frequency);
+        while (rclcpp::ok())
+        {
+            for (unsigned int i = 0; i < num_readings; ++i)
+            {
+                ranges[i] = 20.0;
+                intensities[i] = 100.0;
+            }
 
-		// Parameters
-		std::string pub_lidar_topic_;
-		ros::Publisher pub_lidar_;
+            sensor_msgs::msg::LaserScan scan;
+            scan.header.stamp = this->now();
+            scan.header.frame_id = "laser";
+            scan.angle_min = -2.35;
+            scan.angle_max = 2.35;
+            scan.angle_increment = 4.7 / (num_readings - 1);
+            scan.time_increment = (1 / laser_frequency) / (num_readings);
+            scan.range_min = 20.0;
+            scan.range_max = 20.0;
+            scan.ranges.resize(num_readings);
+            scan.intensities.resize(num_readings);
+            for (unsigned int i = 0; i < num_readings; ++i)
+            {
+                scan.ranges[i] = ranges[i];
+                scan.intensities[i] = intensities[i];
+            }
+
+            publish_lidar(scan);
+            rate.sleep();
+        }
+    }
+
+    void publish_lidar(sensor_msgs::msg::LaserScan lidar)
+    {
+        pub_lidar_->publish(lidar);
+        return;
+    }
+
+private:
+    // Parameters
+    std::string pub_lidar_topic_;
+
+    // Publishers
+    rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr pub_lidar_;
 };
 
-int main(int argc, char** argv) {
-	// ROS setups
-	ros::init(argc, argv, "fake_lidar_publisher");
+int main(int argc, char **argv)
+{
+    // ROS 2 initialization
+    rclcpp::init(argc, argv);
 
-	// ROS nodehandle
-	ros::NodeHandle nh("~");
+    // Create the node instance
+    auto node = std::make_shared<FakeLidarPublisherNode>();
 
-	// Start fake LIDAR publisher node
-	FakeLidarPublisherNode fakeLidarPublisher(&nh);
+    // Spin the node
+    rclcpp::spin(node);
 
-	return 0;
+    // ROS 2 cleanup
+    rclcpp::shutdown();
+
+    return 0;
 }
