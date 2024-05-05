@@ -43,53 +43,94 @@ class SemanticNavigationNode {
 		// Constructor
 		SemanticNavigationNode(ros::NodeHandle* nodehandle) : nh_(*nodehandle) {
 			// Find parameters
-			nh_.getParam("pub_twist_topic", pub_twist_topic_);
-			nh_.getParam("pub_behaviorID_topic", pub_behaviorID_topic_);
-			nh_.getParam("pub_behaviorMode_topic", pub_behaviorMode_topic_);
-			nh_.getParam("sub_laser_topic", sub_laser_topic_);
-			nh_.getParam("sub_robot_topic", sub_robot_topic_);
-			nh_.getParam("sub_semantic_topic", sub_semantic_topic_);
-			nh_.getParam("world_frame_id", world_frame_id_);
-			nh_.getParam("odom_frame_id", odom_frame_id_);
-			nh_.getParam("laser_frame_id", laser_frame_id_);
+			this->declare_parameter("pub_twist_topic", "/cmd_vel");
+			this->declare_parameter("pub_behaviorID_topic", "/behavior_id");
+			this->declare_parameter("pub_behaviorMode_topic", "/behavior_mode");
+			this->declare_parameter("sub_laser_topic", "/laser_scan");
+			this->declare_parameter("sub_robot_topic", "/robot_pose");
+			this->declare_parameter("sub_semantic_topic", "/semantic_map");
+			this->declare_parameter("world_frame_id", "world");
+			this->declare_parameter("odom_frame_id", "odom");
+			this->declare_parameter("laser_frame_id", "laser_frame");
 
-			nh_.getParam("target_object", target_object_);
-			nh_.getParam("target_object_length", target_object_length_);
-			nh_.getParam("target_object_width", target_object_width_);
+			this->declare_parameter("target_object", "");
+			this->declare_parameter("target_object_length", 0.0);
+			this->declare_parameter("target_object_width", 0.0);
 
-			nh_.getParam("RobotRadius", RobotRadius_);
-			nh_.getParam("ObstacleDilation", ObstacleDilation_);
-			nh_.getParam("WalkHeight", WalkHeight_);
+			this->declare_parameter("RobotRadius", 0.0);
+			this->declare_parameter("ObstacleDilation", 0.0);
+			this->declare_parameter("WalkHeight", 0.0);
 
-			nh_.getParam("AllowableRange", AllowableRange_);
-			nh_.getParam("CutoffRange", CutoffRange_);
+			this->declare_parameter("AllowableRange", 0.0);
+			this->declare_parameter("CutoffRange", 0.0);
 
-			nh_.getParam("ForwardLinCmdLimit", ForwardLinCmdLimit_);
-			nh_.getParam("BackwardLinCmdLimit", BackwardLinCmdLimit_);
-			nh_.getParam("AngCmdLimit", AngCmdLimit_);
-			nh_.getParam("RFunctionExponent", RFunctionExponent_);
-			nh_.getParam("Epsilon", Epsilon_);
-			nh_.getParam("VarEpsilon", VarEpsilon_);
-			nh_.getParam("Mu1", Mu1_);
-			nh_.getParam("Mu2", Mu2_);
-			nh_.getParam("SemanticMapUpdateRate", DiffeoTreeUpdateRate_);
+			this->declare_parameter("ForwardLinCmdLimit", 0.0);
+			this->declare_parameter("BackwardLinCmdLimit", 0.0);
+			this->declare_parameter("AngCmdLimit", 0.0);
+			this->declare_parameter("RFunctionExponent", 0.0);
+			this->declare_parameter("Epsilon", 0.0);
+			this->declare_parameter("VarEpsilon", 0.0);
+			this->declare_parameter("Mu1", 0.0);
+			this->declare_parameter("Mu2", 0.0);
+			this->declare_parameter("SemanticMapUpdateRate", 0.0);
 			DiffeoParams_ = DiffeoParamsClass(RFunctionExponent_, Epsilon_, VarEpsilon_, Mu1_, Mu2_, {{-100.0, -100.0}, {100.0, -100.0}, {100.0, 100.0}, {-100.0, 100.0}, {-100.0, -100.0}});
 
-			nh_.getParam("LinearGain", LinearGain_);
-			nh_.getParam("AngularGain", AngularGain_);
+			this->declare_parameter("LinearGain", 0.0);
+			this->declare_parameter("AngularGain", 0.0);
 
-			nh_.getParam("Goal_x", Goal_x_);
-			nh_.getParam("Goal_y", Goal_y_);
+			this->declare_parameter("Goal_x", 0.0);
+			this->declare_parameter("Goal_y", 0.0);
 			Goal_.set<0>(Goal_x_);
 			Goal_.set<1>(Goal_y_);
 			nh_.getParam("Tolerance", Tolerance_);
 
-			nh_.getParam("LowpassCutOff", LowpassCutoff_);
-			nh_.getParam("LowpassSampling", LowpassSampling_);
-			nh_.getParam("LowpassOrder", LowpassOrder_);
-			nh_.getParam("LowpassSamples", LowpassSamples_);
+			this->declare_parameter("LowpassCutOff", 0.0);
+			this->declare_parameter("LowpassSampling", 0.0);
+			this->declare_parameter("LowpassOrder", 0.0);
+			this->declare_parameter("LowpassSamples", 0.0);
 
-			nh_.getParam("DebugFlag", DebugFlag_);
+			this->declare_parameter("DebugFlag", false);
+
+			pub_twist_topic_ = this->get_parameter("pub_twist_topic").as_string();
+			pub_behaviorID_topic_ = this->get_parameter("pub_behaviorID_topic").as_string();
+			pub_behaviorMode_topic_ = this->get_parameter("pub_behaviorMode_topic").as_string();
+			sub_laser_topic_ = this->get_parameter("sub_laser_topic").as_string();
+			sub_robot_topic_ = this->get_parameter("sub_robot_topic").as_string();
+			sub_semantic_topic_ = this->get_parameter("sub_semantic_topic").as_string();
+			world_frame_id_ = this->get_parameter("world_frame_id").as_string();
+			odom_frame_id_ = this->get_parameter("odom_frame_id").as_string();
+			laser_frame_id_ = this->get_parameter("laser_frame_id").as_string();
+			target_object_ = this->get_parameter("target_object").as_string();
+			target_object_length_ = this->get_parameter("target_object_length").as_double();
+			target_object_width_ = this->get_parameter("target_object_width").as_double();
+
+			RobotRadius_ = this->get_parameter("RobotRadius").as_double();
+			ObstacleDilation_ = this->get_parameter("ObstacleDilation").as_double();
+			WalkHeight_ = this->get_parameter("WalkHeight").as_double();
+			AllowableRange_ = this->get_parameter("AllowableRange").as_double();
+			CutoffRange_ = this->get_parameter("CutoffRange").as_double();
+			ForwardLinCmdLimit_ = this->get_parameter("ForwardLinCmdLimit").as_double();
+			BackwardLinCmdLimit_ = this->get_parameter("BackwardLinCmdLimit").as_double();
+			AngCmdLimit_ = this->get_parameter("AngCmdLimit").as_double();
+			RFunctionExponent_ = this->get_parameter("RFunctionExponent").as_double();
+			Epsilon_ = this->get_parameter("Epsilon").as_double();
+			VarEpsilon_ = this->get_parameter("VarEpsilon").as_double();
+			Mu1_ = this->get_parameter("Mu1").as_double();
+			Mu2_ = this->get_parameter("Mu2").as_double();
+			DiffeoTreeUpdateRate_ = this->get_parameter("SemanticMapUpdateRate").as_double();
+
+			LinearGain_ = this->get_parameter("LinearGain").as_double();
+			AngularGain_ = this->get_parameter("AngularGain").as_double();
+			Goal_x_ = this->get_parameter("Goal_x").as_double();
+			Goal_y_ = this->get_parameter("Goal_y").as_double();
+			Tolerance_ = this->get_parameter("Tolerance").as_double();
+
+			LowpassCutOff_ = this->get_parameter("LowpassCutOff").as_double();
+			LowpassSampling_ = this->get_parameter("LowpassSampling").as_double();
+			LowpassOrder_ = this->get_parameter("LowpassOrder").as_double();
+			LowpassSamples_ = this->get_parameter("LowpassSamples").as_double();
+
+			DebugFlag_ = this->get_parameter("DebugFlag").as_bool();
 
 			// Initialize publishers
 			pub_behaviorID_ = nh_.advertise<std_msgs::UInt32>(pub_behaviorID_topic_, 1, true);
