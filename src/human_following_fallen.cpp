@@ -43,51 +43,95 @@ class HumanFollowingFallenNode {
 		// Constructor
 		HumanFollowingFallenNode(ros::NodeHandle* nodehandle) : nh_(*nodehandle) {
 			// Find parameters
-			nh_.getParam("pub_twist_topic", pub_twist_topic_);
-			nh_.getParam("pub_behaviorID_topic", pub_behaviorID_topic_);
-			nh_.getParam("pub_behaviorMode_topic", pub_behaviorMode_topic_);
-			nh_.getParam("sub_laser_topic", sub_laser_topic_);
-			nh_.getParam("sub_robot_topic", sub_robot_topic_);
-			nh_.getParam("sub_semantic_topic", sub_semantic_topic_);
-			nh_.getParam("sub_human_topic", sub_human_topic_);
-			nh_.getParam("world_frame_id", world_frame_id_);
-			nh_.getParam("odom_frame_id", odom_frame_id_);
-			nh_.getParam("camera_optical_frame_id", camera_optical_frame_id_);
-			nh_.getParam("laser_frame_id", laser_frame_id_);
+			 this->declare_parameter<std::string>("pub_twist_topic", "default_twist_topic");
+			this->declare_parameter<std::string>("pub_behaviorID_topic", "default_behaviorID_topic");
+			this->declare_parameter<std::string>("pub_behaviorMode_topic", "default_behaviorMode_topic");
+			this->declare_parameter<std::string>("sub_laser_topic", "default_laser_topic");
+			this->declare_parameter<std::string>("sub_robot_topic", "default_robot_topic");
+			this->declare_parameter<std::string>("sub_semantic_topic", "default_semantic_topic");
+			this->declare_parameter<std::string>("sub_human_topic", "default_human_topic");
+			this->declare_parameter<std::string>("world_frame_id", "default_world_frame_id");
+			this->declare_parameter<std::string>("odom_frame_id", "default_odom_frame_id");
+			this->declare_parameter<std::string>("camera_optical_frame_id", "default_camera_optical_frame_id");
+			this->declare_parameter<std::string>("laser_frame_id", "default_laser_frame_id");
 
-			nh_.getParam("RobotRadius", RobotRadius_);
-			nh_.getParam("ObstacleDilation", ObstacleDilation_);
-			nh_.getParam("WalkHeight", WalkHeight_);
+			this->declare_parameter<double>("RobotRadius", 0.0);
+			this->declare_parameter<double>("ObstacleDilation", 0.0);
+			this->declare_parameter<double>("WalkHeight", 0.0);
 
-			nh_.getParam("AllowableRange", AllowableRange_);
-			nh_.getParam("CutoffRange", CutoffRange_);
+			this->declare_parameter<double>("AllowableRange", 0.0);
+			this->declare_parameter<double>("CutoffRange", 0.0);
 
-			nh_.getParam("ForwardLinCmdLimit", ForwardLinCmdLimit_);
-			nh_.getParam("BackwardLinCmdLimit", BackwardLinCmdLimit_);
-			nh_.getParam("AngCmdLimit", AngCmdLimit_);
-			nh_.getParam("RFunctionExponent", RFunctionExponent_);
-			nh_.getParam("Epsilon", Epsilon_);
-			nh_.getParam("VarEpsilon", VarEpsilon_);
-			nh_.getParam("Mu1", Mu1_);
-			nh_.getParam("Mu2", Mu2_);
-			nh_.getParam("SemanticMapUpdateRate", DiffeoTreeUpdateRate_);
+			this->declare_parameter<double>("ForwardLinCmdLimit", 0.0);
+			this->declare_parameter<double>("BackwardLinCmdLimit", 0.0);
+			this->declare_parameter<double>("AngCmdLimit", 0.0);
+			this->declare_parameter<double>("RFunctionExponent", 0.0);
+			this->declare_parameter<double>("Epsilon", 0.0);
+			this->declare_parameter<double>("VarEpsilon", 0.0);
+			this->declare_parameter<double>("Mu1", 0.0);
+			this->declare_parameter<double>("Mu2", 0.0);
+			this->declare_parameter<double>("SemanticMapUpdateRate", 0.0);
+
+			this->declare_parameter<double>("LinearGain", 0.0);
+			this->declare_parameter<double>("AngularGain", 0.0);
+
+			this->declare_parameter<double>("Goal_x", 0.0);
+			this->declare_parameter<double>("Goal_y", 0.0);
+			this->declare_parameter<double>("Tolerance", 0.0);
+
+			this->declare_parameter<double>("LowpassCutOff", 0.0);
+			this->declare_parameter<double>("LowpassSampling", 0.0);
+			this->declare_parameter<int>("LowpassOrder", 0);
+			this->declare_parameter<int>("LowpassSamples", 0);
+
+			this->declare_parameter<bool>("DebugFlag", false);
+
+			// Get parameters
+			pub_twist_topic_ = this->get_parameter("pub_twist_topic").as_string();
+			pub_behaviorID_topic_ = this->get_parameter("pub_behaviorID_topic").as_string();
+			pub_behaviorMode_topic_ = this->get_parameter("pub_behaviorMode_topic").as_string();
+			sub_laser_topic_ = this->get_parameter("sub_laser_topic").as_string();
+			sub_robot_topic_ = this->get_parameter("sub_robot_topic").as_string();
+			sub_semantic_topic_ = this->get_parameter("sub_semantic_topic").as_string();
+			sub_human_topic_ = this->get_parameter("sub_human_topic").as_string();
+			world_frame_id_ = this->get_parameter("world_frame_id").as_string();
+			odom_frame_id_ = this->get_parameter("odom_frame_id").as_string();
+			camera_optical_frame_id_ = this->get_parameter("camera_optical_frame_id").as_string();
+			laser_frame_id_ = this->get_parameter("laser_frame_id").as_string();
+
+			RobotRadius_ = this->get_parameter("RobotRadius").as_double();
+			ObstacleDilation_ = this->get_parameter("ObstacleDilation").as_double();
+			WalkHeight_ = this->get_parameter("WalkHeight").as_double();
+
+			AllowableRange_ = this->get_parameter("AllowableRange").as_double();
+			CutoffRange_ = this->get_parameter("CutoffRange").as_double();
+
+			ForwardLinCmdLimit_ = this->get_parameter("ForwardLinCmdLimit").as_double();
+			BackwardLinCmdLimit_ = this->get_parameter("BackwardLinCmdLimit").as_double();
+			AngCmdLimit_ = this->get_parameter("AngCmdLimit").as_double();
+			RFunctionExponent_ = this->get_parameter("RFunctionExponent").as_double();
+			Epsilon_ = this->get_parameter("Epsilon").as_double();
+			VarEpsilon_ = this->get_parameter("VarEpsilon").as_double();
+			Mu1_ = this->get_parameter("Mu1").as_double();
+			Mu2_ = this->get_parameter("Mu2").as_double();
+			DiffeoTreeUpdateRate_ = this->get_parameter("SemanticMapUpdateRate").as_double();
 			DiffeoParams_ = DiffeoParamsClass(RFunctionExponent_, Epsilon_, VarEpsilon_, Mu1_, Mu2_, {{-100.0, -100.0}, {100.0, -100.0}, {100.0, 100.0}, {-100.0, 100.0}, {-100.0, -100.0}});
 
-			nh_.getParam("LinearGain", LinearGain_);
-			nh_.getParam("AngularGain", AngularGain_);
+			LinearGain_ = this->get_parameter("LinearGain").as_double();
+			AngularGain_ = this->get_parameter("AngularGain").as_double();
 
-			nh_.getParam("Goal_x", Goal_x_);
-			nh_.getParam("Goal_y", Goal_y_);
+			Goal_x_ = this->get_parameter("Goal_x").as_double();
+			Goal_y_ = this->get_parameter("Goal_y").as_double();
 			Goal_.set<0>(Goal_x_);
 			Goal_.set<1>(Goal_y_);
-			nh_.getParam("Tolerance", Tolerance_);
+			Tolerance_ = this->get_parameter("Tolerance").as_double();
 
-			nh_.getParam("LowpassCutOff", LowpassCutoff_);
-			nh_.getParam("LowpassSampling", LowpassSampling_);
-			nh_.getParam("LowpassOrder", LowpassOrder_);
-			nh_.getParam("LowpassSamples", LowpassSamples_);
+			LowpassCutoff_ = this->get_parameter("LowpassCutOff").as_double();
+			LowpassSampling_ = this->get_parameter("LowpassSampling").as_double();
+			LowpassOrder_ = this->get_parameter("LowpassOrder").as_int();
+			LowpassSamples_ = this->get_parameter("LowpassSamples").as_int();
 
-			nh_.getParam("DebugFlag", DebugFlag_);
+			DebugFlag_ = this->get_parameter("DebugFlag").as_bool();
 
 			// Initialize publishers
 			pub_behaviorID_ = nh_.advertise<std_msgs::UInt32>(pub_behaviorID_topic_, 1, true);

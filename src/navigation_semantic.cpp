@@ -38,10 +38,10 @@ bg::strategy::buffer::end_flat end_strategy_input;
 bg::strategy::buffer::point_circle point_strategy_input;
 bg::strategy::buffer::side_straight side_strategy_input;
 
-class SemanticNavigationNode {
+class SemanticNavigationNode : public rclcpp::Node {
 	public:
 		// Constructor
-		SemanticNavigationNode(ros::NodeHandle* nodehandle) : nh_(*nodehandle) {
+		SemanticNavigationNode() : Node("semantic_navigation_node")  {
 			// Find parameters
 			this->declare_parameter("pub_twist_topic", "/cmd_vel");
 			this->declare_parameter("pub_behaviorID_topic", "/behavior_id");
